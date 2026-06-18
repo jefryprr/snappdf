@@ -28,3 +28,13 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v
+
+  # Validate HTML is well-formed (basic check)
+  html-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check index.html exists and is non-empty
+        run: |
+          test -s index.html
+          echo "index.html exists and is non-empty ($(wc -c < index.html) bytes)"

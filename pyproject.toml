@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "snappdf"
 version = "0.1.0"
-description = "A lightweight, frontend-only photo-to-PDF converter with waterfall layout, drag-and-drop sorting, and EXIF-aware rotation."
+description = "A zero-dependency, feature-rich HTML+JS web app that converts photos into a printable A4 PDF with waterfall grid layout, drag-and-drop sorting, per-photo rotation, zoom, page navigator, live preview, and drag-to-reorder page groups."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Jefry Pratama" }]

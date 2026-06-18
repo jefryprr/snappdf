@@ -1,4 +1,6 @@
-"""Tests for core module."""
+"""
+Tests for core module.
+"""
 import pytest
 from snappdf.core import main
 

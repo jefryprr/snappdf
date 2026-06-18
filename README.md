@@ -2,12 +2,12 @@
 
 # 📸 SnapPDF
 
-A lightweight, **frontend-only** photo-to-PDF converter with waterfall layout, drag-and-drop sorting, and EXIF-aware rotation — no server, no Python, no install. Just open `index.html`.
+A zero-dependency, feature-rich HTML+JS web app that converts photos into a printable **A4 PDF** with waterfall grid layout, drag-and-drop sorting, per-photo rotation, zoom, page navigator, live preview, and drag-to-reorder page groups.
 
 [![CI](https://github.com/jefryprr/snappdf/actions/workflows/ci.yml/badge.svg)](https://github.com/jefryprr/snappdf/actions)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![HTML5](https://img.shields.io/badge/HTML5-frontend%20only-orange.svg)](index.html)
+[![HTML5](https://img.shields.io/badge/HTML5-zero--dependency-orange.svg)](index.html)
 
 </div>
 
@@ -15,18 +15,22 @@ A lightweight, **frontend-only** photo-to-PDF converter with waterfall layout, d
 
 ## ✨ Features
 
-- 🖼️ **Waterfall Layout** — Multi-column photo grid (1–10 columns), not just stacked vertically
+- 🖼️ **Waterfall Grid Layout** — Photos arranged in multi-column waterfall (1–10 columns), not just stacked
 - 📐 **A4 Portrait & Landscape** — Automatic column adjustment when switching orientation
-- 🔀 **Drag & Drop Sort** — Reorder photos by dragging (SortableJS)
-- 🔄 **EXIF-Aware Rotation** — Auto-rotate based on EXIF data, plus manual CW/CCW buttons
-- 🏷️ **Custom Captions** — Add/edit captions below each photo in the PDF
-- 🎚️ **JPEG Quality Control** — Adjustable quality (10–100) to balance clarity vs file size
-- 📄 **Multi-Page Support** — Automatically paginates when photos exceed one page
-- 📋 **Clipboard Paste** — Paste images directly from clipboard
-- 🗑️ **Per-Photo Management** — Delete/restore individual photos without re-uploading
-- 👀 **Gallery Preview** — See waterfall layout before generating PDF
-- 🌙 **Dark/Light Theme** — Responsive design with theme toggle
-- 🚀 **Zero Dependencies** — Runs entirely in the browser, no server needed
+- 🔀 **Drag & Drop Reordering** — Sort photos via SortableJS (CDN, zero install)
+- ↻ **Per-Photo Rotation** — CW/CCW 90° rotation with canvas transform, persisted per photo
+- 🔍 **Zoom Slider** — Adjust preview width from 50–200mm for high-res or long-exposure photos
+- 📑 **Page Navigator** — Sidebar with clickable page groups; click page to jump, click photo to focus
+- 👀 **Live A4 Preview** — Real-time paginated preview as you configure
+- 🔄 **Page Group Reordering** — Drag page groups in sidebar to reorder entire pages
+- 📋 **Per-Page Column Override** — Different column count per page
+- ↔️ **Photo Transfer** — Move photos between pages via drag in sidebar
+- 📏 **Subtle Grid Lines** — Dashed, muted grid in preview (hidden by default)
+- 📄 **Custom Filename** — Name your downloaded PDF
+- 🎚️ **JPEG Quality Control** — Adjustable quality (50–100)
+- 📱 **Mobile Responsive** — Works on phone, tablet, and desktop
+- 🔄 **Auto EXIF Rotation** — Photos auto-rotated based on EXIF orientation tag
+- 🚫 **Zero Dependencies** — No install, no build step, no backend. Just open `index.html`
 
 ## 🚀 Quick Start
 
@@ -35,45 +39,28 @@ A lightweight, **frontend-only** photo-to-PDF converter with waterfall layout, d
 git clone https://github.com/jefryprr/snappdf.git
 cd snappdf
 
-# Open in browser (that's it!)
-start index.html          # Windows
-open index.html           # macOS
-xdg-open index.html       # Linux
+# Open directly in browser (no install needed!)
+open index.html        # macOS
+xdg-open index.html    # Linux
+start index.html       # Windows
 ```
 
-Or just **[open directly in your browser](index.html)** — no install required.
+Or just **double-click `index.html`** in your file explorer.
 
-## 🌐 Deploy
+## 💡 How to Use
 
-### GitHub Pages
+1. **Open** `index.html` in any modern browser
+2. **Upload** photos (drag & drop or file picker)
+3. **Arrange** — drag to reorder, use rotation buttons, adjust zoom
+4. **Configure** — set orientation, columns, quality, filename
+5. **Preview** — check the live A4 preview with page navigator
+6. **Download** — click "Generate PDF" and download
 
-1. Go to repo **Settings** → **Pages**
-2. Source: `Deploy from a branch` → `main` → `/ (root)`
-3. Your site will be live at `https://jefryprr.github.io/snappdf/`
-
-### Netlify / Vercel
-
-Just drag & drop the `index.html` file — no build step needed.
-
-## 💡 Usage
-
-1. **Upload** — Drag & drop or browse for JPG/JPEG/PNG files
-2. **Sort** — Drag to reorder, or use sort buttons (A→Z, Z→A, EXIF date)
-3. **Configure** — Set orientation, columns, JPEG quality, and captions
-4. **Preview** — Check the gallery preview to see waterfall layout
-5. **Generate** — Click "Generate PDF" and download
-
-## 🧪 Running Tests (Python Package)
+## 🧪 Running Tests
 
 ```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-# Install in editable mode
+# Install dev dependencies (optional — for testing the Python scaffold)
 pip install -e ".[dev]"
-
-# Run tests
 pytest tests/ -v
 ```
 
@@ -81,35 +68,35 @@ pytest tests/ -v
 
 ```
 snappdf/
-├── index.html              # Main web app (1779 lines, frontend-only)
+├── index.html              # Main web app (HTML+JS+CSS, 1877 lines)
 ├── src/snappdf/            # Python package scaffold
 │   ├── __init__.py
 │   └── core.py
 ├── tests/                  # Unit tests (pytest)
 │   ├── __init__.py
 │   └── test_core.py
-├── docs/
-│   └── index.md            # Documentation
-├── .github/workflows/
-│   └── ci.yml              # GitHub Actions CI
+├── docs/                   # Documentation
+│   └── index.md
+├── .github/workflows/      # CI/CD pipelines
+│   └── ci.yml
 ├── .gitignore
 ├── LICENSE                 # MIT License
 ├── README.md               # This file
 ├── CHANGELOG.md            # Version history
 ├── pyproject.toml          # Build config (Hatchling)
-└── requirements.txt        # Dev dependencies
+└── requirements.txt        # Runtime dependencies
 ```
 
-## 🛠️ Tech Stack (Frontend)
+## 🛠️ Tech Stack
 
-| Technology | Purpose |
-|------------|---------|
-| **HTML5 / CSS3 / JS** | Core app (zero framework) |
-| **SortableJS** | Drag & drop photo reordering |
-| **jsPDF** | Client-side PDF generation |
-| **exifr** | EXIF metadata extraction (rotation, date) |
-| **Lucide** | Icon set |
-| **Inter** | Typography (Google Fonts) |
+| Component | Technology |
+|-----------|-----------|
+| PDF Generation | jsPDF (CDN) |
+| Drag & Drop | SortableJS (CDN) |
+| EXIF Parsing | EXIF.js (CDN) |
+| UI | Vanilla HTML + CSS + JavaScript |
+| Build | None required |
+| Backend | None required |
 
 ## 📝 License
 

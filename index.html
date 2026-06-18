@@ -727,37 +727,135 @@
         /* ═══════════════════════════════════════════════════════════════
            RESPONSIVE
            ═══════════════════════════════════════════════════════════════ */
+
+        /* ── Tablet Landscape (≤1024px) ───────────────────────────── */
+        @media (max-width: 1024px) {
+            :root { --sidebar-w: 240px; }
+            .sidebar { padding: 14px; gap: 12px; }
+            .sidebar-section { padding: 12px; }
+            .main-content { padding: 18px; gap: 14px; }
+            .waterfall-grid { gap: 8px; }
+            .waterfall-col { gap: 8px; }
+        }
+
+        /* ── Tablet Portrait (≤860px): sidebar → horizontal bar ──── */
         @media (max-width: 860px) {
             .app-layout { flex-direction: column; }
             .sidebar {
                 width: 100%;
                 position: static;
                 height: auto;
+                max-height: none;
                 border-right: none;
                 border-bottom: 1px solid var(--border);
                 flex-direction: row;
                 flex-wrap: wrap;
-                gap: 10px;
-                padding: 14px;
+                gap: 8px;
+                padding: 10px 12px;
             }
-            .sidebar-section { flex: 1; min-width: 140px; }
-            .sidebar .btn-full { width: auto; }
-            .main-content { padding: 14px; gap: 12px; }
+            .sidebar-section { flex: 1 1 140px; min-width: 130px; padding: 10px; }
+            .sidebar .btn-full { width: 100%; margin-top: 4px; }
+            .sidebar .sidebar-label { font-size: 10px; margin-bottom: 6px; }
+            .sidebar .radio-btn { font-size: 11px; padding: 6px 4px; }
+            .sidebar input[type="range"] { height: 5px; }
+            .sidebar input[type="range"]::-webkit-slider-thumb { width: 16px; height: 16px; }
+            .main-content { padding: 12px; gap: 10px; }
+            .navbar { padding: 0 12px; height: 52px; }
+            .nav-brand { font-size: 15px; }
+            .toolbar { gap: 6px; }
+            .toolbar select { font-size: 12px; padding: 7px 10px; }
+            .toolbar input[type="text"] { width: 110px; font-size: 12px; }
+            .btn { font-size: 13px; padding: 7px 12px; }
+            .upload-zone { padding: 24px 16px; }
+            .upload-title { font-size: 14px; }
+            .upload-subtitle { font-size: 12px; }
             .waterfall-grid { gap: 6px; }
             .waterfall-col { gap: 6px; }
-            .navbar { padding: 0 14px; }
-            .toolbar { gap: 8px; }
-            .toolbar input[type="text"] { width: 120px; }
+            .stats-bar { font-size: 11px; padding: 8px 12px; gap: 10px; }
+            .card-actions .btn-icon { width: 26px; height: 26px; font-size: 13px; }
         }
+
+        /* ── Mobile Landscape (≤680px): 2-3 kolom waterfall ──────── */
+        @media (max-width: 680px) {
+            .sidebar { padding: 8px; gap: 6px; }
+            .sidebar-section { flex: 1 1 120px; min-width: 110px; padding: 8px; }
+            .nav-brand .logo .lucide { width: 18px; height: 18px; }
+            .nav-brand { font-size: 13px; gap: 6px; }
+            .upload-zone { padding: 18px 12px; border-radius: var(--radius); }
+            .upload-icon .lucide { width: 28px; height: 28px; }
+            .upload-title { font-size: 13px; }
+            .upload-subtitle { font-size: 11px; }
+            .btn-lg { padding: 10px 18px; font-size: 14px; }
+            .toolbar input[type="text"] { width: 90px; }
+            .stats-bar { gap: 6px; flex-wrap: wrap; }
+            .waterfall-grid { gap: 5px; }
+            .waterfall-col { gap: 5px; }
+            .card-index { font-size: 10px; padding: 1px 5px; top: 4px; left: 4px; }
+            .card-actions { padding: 2px 4px; }
+            .card-actions .btn-icon { width: 24px; height: 24px; }
+            .card-caption-input { font-size: 11px; padding: 4px 6px; }
+            .sortable-item { padding: 6px 8px; }
+            .sortable-name { font-size: 12px; }
+            .sortable-thumb { width: 36px; height: 36px; }
+        }
+
+        /* ── Mobile (≤480px): single-column, full-width ──────────── */
         @media (max-width: 480px) {
+            .navbar { height: 48px; padding: 0 10px; }
+            .nav-brand { font-size: 12px; }
+            .nav-brand .logo .lucide { width: 16px; height: 16px; }
+            .nav-count { display: none; }
+            .btn { font-size: 12px; padding: 6px 10px; }
+            .btn-primary { padding: 8px 16px; }
+            .app-layout { gap: 0; }
+            .sidebar {
+                padding: 6px 8px;
+                gap: 4px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .sidebar-section { flex: 1 1 auto; min-width: 0; padding: 8px; }
+            .sidebar .btn-full { font-size: 13px; padding: 10px; }
+            .main-content { padding: 8px; gap: 8px; }
+            .upload-zone { padding: 16px 10px; }
+            .upload-subtitle strong { display: block; }
+            .toolbar { flex-wrap: wrap; }
+            .toolbar select { flex: 1; min-width: 100px; }
+            .toolbar input[type="text"] { flex: 1; min-width: 80px; width: auto; }
             .waterfall-grid { flex-direction: column; gap: 8px; }
             .waterfall-col { gap: 8px; }
-            .sidebar { padding: 10px; gap: 6px; }
-            .sidebar-section { min-width: 100%; padding: 12px; }
-            .upload-zone { padding: 24px 14px; }
-            .nav-brand { font-size: 14px; }
-            .nav-count { display: none; }
+            .stats-bar { font-size: 10px; padding: 6px 10px; }
+            .photo-card { border-radius: var(--radius-sm); }
+            .card-actions .btn-icon { width: 28px; height: 28px; }
+            .card-rotation-badge { font-size: 9px; }
+            .sortable-item { padding: 6px; border-radius: var(--radius-sm); }
+            .sortable-item > div:first-child { gap: 8px !important; }
+            .sortable-drag-handle { padding: 0 2px; }
+            .sortable-drag-handle .lucide { width: 14px; height: 14px; }
+            .sortable-name { font-size: 11px; }
+            .sortable-thumb { width: 32px; height: 32px; }
+            .btn-icon { width: 28px; height: 28px; }
+            .progress-card { min-width: auto; width: 90vw; padding: 24px 20px; }
+            .progress-title { font-size: 14px; }
+            .toast { max-width: 90vw; font-size: 12px; padding: 10px 14px; }
+            .restore-bar { padding: 4px; }
+            .empty-state { padding: 30px 16px; }
+            .empty-icon .lucide { width: 32px; height: 32px; }
+            .empty-title { font-size: 14px; }
+            .warning-bar { font-size: 11px; padding: 8px 10px; }
         }
+
+        /* ── Very Small (≤360px) ─────────────────────────────────── */
+        @media (max-width: 360px) {
+            .nav-brand { font-size: 11px; }
+            .btn { font-size: 11px; padding: 5px 8px; }
+            .sidebar-section { padding: 6px; }
+            .sidebar .radio-btn { font-size: 10px; padding: 5px 2px; }
+            .toolbar select { font-size: 11px; }
+            .upload-zone { padding: 12px 8px; }
+            .photo-card { border-radius: 4px; }
+        }
+    </style>
     </style>
 </head>
 <body>

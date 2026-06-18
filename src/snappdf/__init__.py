@@ -1,5 +1,5 @@
 """
-SnapPDF — A lightweight, frontend-only photo-to-PDF converter with waterfall layout.
+SnapPDF — Zero-dependency photo-to-PDF converter.
 """
 
 __version__ = "0.1.0"
