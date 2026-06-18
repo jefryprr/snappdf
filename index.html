@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapPDF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/lite.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+           LUCIDE ICONS
+           ═══════════════════════════════════════════════════════════════ */
+        .lucide {
+            width: 18px; height: 18px;
+            stroke-width: 2;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: -0.25em;
+            flex-shrink: 0;
+        }
+        .lucide-sm  { width: 14px; height: 14px; }
+        .lucide-lg  { width: 22px; height: 22px; stroke-width: 1.8; }
+        .lucide-xl  { width: 32px; height: 32px; stroke-width: 1.6; }
+        .lucide-2xl { width: 40px; height: 40px; stroke-width: 1.4; }
+        /* icon inside button — inherit size from parent font */
+        .btn .lucide, .btn-icon .lucide { width: 16px; height: 16px; vertical-align: -0.3em; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           CSS CUSTOM PROPERTIES
+           ═══════════════════════════════════════════════════════════════ */
+        :root {
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --surface-hover: #f8fafc;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fef2f2;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+            --radius-sm: 6px;
+            --radius: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-w: 280px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           RESET & BASE
+           ═══════════════════════════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           NAVBAR
+           ═══════════════════════════════════════════════════════════════ */
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 17px;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .nav-brand .logo { font-size: 24px; }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-count {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            background: var(--bg);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           BUTTONS
+           ═══════════════════════════════════════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+            letter-spacing: -0.1px;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(37,99,235,0.3);
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.35);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--surface-hover);
+            border-color: #cbd5e1;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--bg);
+            color: var(--text);
+        }
+        .btn-danger {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #fee2e2;
+        }
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-muted);
+        }
+        .btn-icon:hover {
+            background: var(--bg);
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-icon.danger:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-color: #fecaca;
+        }
+        .btn-lg {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: var(--radius);
+        }
+        .btn-full { width: 100%; justify-content: center; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           MAIN LAYOUT
+           ═══════════════════════════════════════════════════════════════ */
+        .app-layout {
+            display: flex;
+            max-width: 1440px;
+            margin: 0 auto;
+            min-height: calc(100vh - 60px);
+        }
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+        }
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SIDEBAR SECTIONS
+           ═══════════════════════════════════════════════════════════════ */
+        .sidebar-section {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border-light);
+        }
+        .sidebar-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .radio-group {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+            border: 1px solid var(--border);
+        }
+        .radio-btn {
+            flex: 1;
+            text-align: center;
+            padding: 7px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+        .radio-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .radio-btn:hover:not(.active) {
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SLIDERS
+           ═══════════════════════════════════════════════════════════════ */
+        .slider-group { margin-top: 2px; }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .slider-header span:first-child {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .slider-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 32px;
+            text-align: center;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           CHECKBOX / TOGGLE
+           ═══════════════════════════════════════════════════════════════ */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            padding: 4px 0;
+        }
+        .checkbox-row input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           UPLOAD ZONE
+           ═══════════════════════════════════════════════════════════════ */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            background: var(--surface);
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .upload-zone.drag-over {
+            border-style: solid;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+        }
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.8;
+        }
+        .upload-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .upload-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .upload-subtitle strong { color: var(--primary); font-weight: 600; }
+        #file-input { display: none; }
+
+        .clipboard-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+        .clipboard-row .or-divider {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           TOOLBAR
+           ═══════════════════════════════════════════════════════════════ */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .toolbar select, .toolbar input[type="text"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 13px;
+            background: var(--surface);
+            color: var(--text);
+            transition: all var(--transition);
+        }
+        .toolbar select:focus, .toolbar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .toolbar input[type="text"] { width: 180px; }
+        .toolbar-spacer { flex: 1; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           STATS BAR
+           ═══════════════════════════════════════════════════════════════ */
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 16px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+        .stat strong { color: var(--text); }
+        .stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PHOTO GRID (WATERFALL COLUMNS)
+           ═══════════════════════════════════════════════════════════════ */
+        .waterfall-grid {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .waterfall-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PHOTO CARD
+           ═══════════════════════════════════════════════════════════════ */
+        .photo-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all var(--transition);
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        .photo-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #cbd5e1;
+        }
+        .photo-card .card-img {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 2px;
+            padding: 4px 6px;
+            background: var(--surface);
+            border-top: 1px solid var(--border-light);
+        }
+        .card-actions .btn-icon {
+            width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+        .card-rotation-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-right: auto;
+        }
+        .card-caption-input {
+            width: 100%;
+            border: none;
+            border-top: 1px solid var(--border-light);
+            padding: 6px 10px;
+            font-family: inherit;
+            font-size: 12px;
+            color: var(--text);
+            background: var(--bg);
+            transition: all var(--transition);
+        }
+        .card-caption-input:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: inset 0 1px 0 var(--primary);
+        }
+        .card-caption-input::placeholder {
+            color: var(--text-muted);
+        }
+        .card-index {
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(0,0,0,0.55);
+            padding: 2px 7px;
+            border-radius: 8px;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SORTABLE LIST (manual drag-drop mode)
+           ═══════════════════════════════════════════════════════════════ */
+        .sortable-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .sortable-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            cursor: grab;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .sortable-item:hover {
+            box-shadow: var(--shadow-md);
+            border-color: #cbd5e1;
+        }
+        .sortable-item:active { cursor: grabbing; }
+        .sortable-item.sortable-ghost {
+            opacity: 0.4;
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+        .sortable-item.sortable-chosen {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        .sortable-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .sortable-name {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .sortable-drag-handle {
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: grab;
+            padding: 0 4px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           WARNING / RESTORE BAR
+           ═══════════════════════════════════════════════════════════════ */
+        .warning-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--warning-light);
+            border: 1px solid #fde68a;
+            border-radius: var(--radius);
+            font-size: 13px;
+            color: #92400e;
+            flex-wrap: wrap;
+        }
+        .warning-bar .btn { flex-shrink: 0; }
+        .restore-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           EMPTY STATE
+           ═══════════════════════════════════════════════════════════════ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon { font-size: 52px; margin-bottom: 12px; display: block; }
+        .empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+        .empty-state .empty-desc { font-size: 13px; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PROGRESS OVERLAY
+           ═══════════════════════════════════════════════════════════════ */
+        .progress-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .progress-card {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 36px 40px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            min-width: 320px;
+        }
+        .progress-card .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .progress-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+        .progress-subtitle { font-size: 13px; color: var(--text-secondary); }
+        .progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           TOAST
+           ═══════════════════════════════════════════════════════════════ */
+        .toast-container {
+            position: fixed;
+            top: 72px;
+            right: 20px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            border: 1px solid;
+        }
+        .toast.success { background: var(--success-light); border-color: #a7f3d0; color: #065f46; }
+        .toast.warning { background: var(--warning-light); border-color: #fde68a; color: #92400e; }
+        .toast.error { background: var(--danger-light); border-color: #fecaca; color: #991b1b; }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ═══════════════════════════════════════════════════════════════
+           RESPONSIVE
+           ═══════════════════════════════════════════════════════════════ */
+        @media (max-width: 860px) {
+            .app-layout { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 14px;
+            }
+            .sidebar-section { flex: 1; min-width: 140px; }
+            .sidebar .btn-full { width: auto; }
+            .main-content { padding: 14px; gap: 12px; }
+            .waterfall-grid { gap: 6px; }
+            .waterfall-col { gap: 6px; }
+            .navbar { padding: 0 14px; }
+            .toolbar { gap: 8px; }
+            .toolbar input[type="text"] { width: 120px; }
+        }
+        @media (max-width: 480px) {
+            .waterfall-grid { flex-direction: column; gap: 8px; }
+            .waterfall-col { gap: 8px; }
+            .sidebar { padding: 10px; gap: 6px; }
+            .sidebar-section { min-width: 100%; padding: 12px; }
+            .upload-zone { padding: 24px 14px; }
+            .nav-brand { font-size: 14px; }
+            .nav-count { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     NAVBAR
+     ═══════════════════════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <span class="logo"><i data-lucide="camera" class="lucide-lg"></i></span>
+        <span>SnapPDF</span>
+    </div>
+    <div class="nav-actions">
+        <span class="nav-count" id="nav-count">0 foto</span>
+        <button class="btn btn-primary" id="btn-generate-nav" disabled><i data-lucide="sparkles" class="lucide-sm"></i> Generate PDF</button>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     APP LAYOUT
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label"><i data-lucide="ruler" class="lucide-sm"></i> Layout Halaman</div>
+            <div class="radio-group" id="orientation-group">
+                <button class="radio-btn active" data-value="portrait">Portrait</button>
+                <button class="radio-btn" data-value="landscape">Landscape</button>
+            </div>
+            <div class="slider-group" style="margin-top:12px;">
+                <div class="slider-header">
+                    <span>Jumlah Kolom</span>
+                    <span class="slider-value" id="cols-value">3</span>
+                </div>
+                <input type="range" min="1" max="10" value="3" id="cols-slider">
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label"><i data-lucide="image" class="lucide-sm"></i> Kualitas Gambar</div>
+            <div class="slider-header">
+                <span>Kualitas JPEG</span>
+                <span class="slider-value" id="quality-value">85</span>
+            </div>
+            <input type="range" min="10" max="100" value="85" step="5" id="quality-slider">
+        </div>
+
+        <div class="sidebar-section">
+            <label class="checkbox-row">
+                <input type="checkbox" id="captions-toggle">
+                <i data-lucide="tag" class="lucide-sm"></i> Tambahkan keterangan pada foto
+            </label>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-full" id="btn-generate-sidebar" disabled>
+            <i data-lucide="sparkles" class="lucide-sm"></i> Generate PDF
+        </button>
+        <div style="text-align:center;font-size:11px;color:var(--text-muted);padding-top:8px;">
+            &copy; Jefry Pratama 2026
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="upload-zone">
+            <span class="upload-icon"><i data-lucide="upload" class="lucide-2xl"></i></span>
+            <div class="upload-title">Tambah Foto</div>
+            <div class="upload-subtitle">
+                Seret & lepas di sini, atau <strong>klik untuk browse</strong>
+            </div>
+            <div class="upload-subtitle" style="margin-top:2px;font-size:12px;">
+                JPG · JPEG · PNG
+            </div>
+            <input type="file" id="file-input" accept="image/jpeg,image/png" multiple>
+            <div class="clipboard-row">
+                <button class="btn btn-secondary btn-sm" id="btn-paste" title="Tempel gambar dari clipboard">
+                    <i data-lucide="clipboard-paste" class="lucide-sm"></i> Paste dari Clipboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Warning: Failed Files -->
+        <div class="warning-bar" id="failed-warning" style="display:none;"></div>
+
+        <!-- Toolbar -->
+        <div class="toolbar" id="toolbar" style="display:none;">
+            <select id="sort-select">
+                <option value="upload">Sesuai Urutan Upload</option>
+                <option value="name-asc">Nama File A → Z</option>
+                <option value="name-desc">Nama File Z → A</option>
+                <option value="exif">Waktu Pengambilan (Exif)</option>
+                <option value="manual">Atur Manual (Drag & Drop)</option>
+            </select>
+            <input type="text" id="pdf-name" value="output_foto" placeholder="Nama file PDF...">
+            <span class="toolbar-spacer"></span>
+            <button class="btn btn-ghost" id="btn-clear-all" style="display:none;"><i data-lucide="trash-2" class="lucide-sm"></i> Hapus Semua</button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="stats-bar" style="display:none;">
+            <span class="stat"><span class="stat-dot"></span> <strong id="stat-count">0</strong> foto siap diproses</span>
+            <span class="stat"><i data-lucide="file-text" class="lucide-sm"></i> Estimasi <strong id="stat-pages">0</strong> halaman PDF</span>
+            <span class="stat" id="stat-dims"></span>
+        </div>
+
+        <!-- Restore Bar -->
+        <div class="restore-bar" id="restore-bar" style="display:none;">
+            <button class="btn btn-ghost" id="btn-restore-all"><i data-lucide="undo-2" class="lucide-sm"></i> Pulihkan Semua Foto yang Dihapus</button>
+        </div>
+
+        <!-- Photo Grid -->
+        <div id="photo-grid"></div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state">
+            <span class="empty-icon"><i data-lucide="folder-open" class="lucide-2xl"></i></span>
+            <div class="empty-title">Belum ada foto</div>
+            <div class="empty-desc">Upload atau seret foto untuk memulai. Format JPG, JPEG, dan PNG didukung.</div>
+        </div>
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PROGRESS OVERLAY
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="progress-overlay" id="progress-overlay" style="display:none;">
+    <div class="progress-card">
+        <div class="spinner"></div>
+        <div class="progress-title">Membuat PDF...</div>
+        <div class="progress-subtitle" id="progress-text">Menyiapkan...</div>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    // ═════════════════════════════════════════════════════════════════
+    //  CONSTANTS
+    // ═════════════════════════════════════════════════════════════════
+    const DPI = 300;
+    const A4_W_PORTRAIT = 210;
+    const A4_H_PORTRAIT = 297;
+    const GAP_MM = 1;
+    const PAGE_MARGIN_MM = 2;
+    const TOP_MARGIN_MM = 1;
+    const BOTTOM_MARGIN_MM = 1;
+    const BORDER_MM = 0.5;
+    const CAPTION_HEIGHT_MM = 4.0;
+    const CAPTION_FONT_PT = 5;
+    const CAPTION_Y_OFFSET_MM = 0.8;
+    const CAPTION_X_PADDING_MM = 1.0;
+    const THUMBNAIL_MAX_W = 400;
+
+    // ═════════════════════════════════════════════════════════════════
+    //  STATE
+    // ═════════════════════════════════════════════════════════════════
+    const state = {
+        photos: [],             // {id, file, name, aspectRatio, rotation, exifDate, failed}
+        thumbnails: {},         // {id: dataUrl}
+        deletedIds: new Set(),
+        sortMode: 'upload',
+        orientation: 'portrait',
+        nCols: 3,
+        jpegQuality: 85,
+        captionsEnabled: false,
+        pdfName: 'output_foto',
+        manualOrder: null,      // [id, ...] — preserved manual sort order
+        captions: {},           // {id: text}
+    };
+
+    // ═════════════════════════════════════════════════════════════════
+    //  DOM REFS
+    // ═════════════════════════════════════════════════════════════════
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    const dom = {
+        uploadZone: $('#upload-zone'),
+        fileInput: $('#file-input'),
+        photoGrid: $('#photo-grid'),
+        emptyState: $('#empty-state'),
+        toolbar: $('#toolbar'),
+        statsBar: $('#stats-bar'),
+        restoreBar: $('#restore-bar'),
+        failedWarning: $('#failed-warning'),
+        sortSelect: $('#sort-select'),
+        pdfName: $('#pdf-name'),
+        navCount: $('#nav-count'),
+        statCount: $('#stat-count'),
+        statPages: $('#stat-pages'),
+        statDims: $('#stat-dims'),
+        colsSlider: $('#cols-slider'),
+        colsValue: $('#cols-value'),
+        qualitySlider: $('#quality-slider'),
+        qualityValue: $('#quality-value'),
+        captionsToggle: $('#captions-toggle'),
+        orientationGroup: $('#orientation-group'),
+        btnGenerateNav: $('#btn-generate-nav'),
+        btnGenerateSidebar: $('#btn-generate-sidebar'),
+        btnPaste: $('#btn-paste'),
+        btnClearAll: $('#btn-clear-all'),
+        btnRestoreAll: $('#btn-restore-all'),
+        progressOverlay: $('#progress-overlay'),
+        progressText: $('#progress-text'),
+        progressFill: $('#progress-fill'),
+        toastContainer: $('#toast-container'),
+    };
+
+    // ═════════════════════════════════════════════════════════════════
+    //  UTILITY
+    // ═════════════════════════════════════════════════════════════════
+    function mmToPx(mm) { return Math.round(mm * DPI / 25.4); }
+    function computeImgWidth(a4w, nCols) {
+        return (a4w - 2 * PAGE_MARGIN_MM - (nCols - 1) * GAP_MM) / nCols;
+    }
+
+    function showToast(msg, type = 'success', icon = null) {
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = (icon ? `<i data-lucide="${icon}" class="lucide-sm"></i> ` : '') + msg;
+        dom.toastContainer.appendChild(el);
+        lucide.createIcons({ target: el });
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; }, 3000);
+        setTimeout(() => el.remove(), 3400);
+    }
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  EXIF ORIENTATION (canvas-based)
+    // ═════════════════════════════════════════════════════════════════
+    function applyExifOrientation(img, orientation) {
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+        const w = img.width;
+        const h = img.height;
+
+        // Set canvas size based on orientation
+        if (orientation >= 5 && orientation <= 8) {
+            c.width = h; c.height = w;
+        } else {
+            c.width = w; c.height = h;
+        }
+
+        // Apply transform
+        switch (orientation) {
+            case 2: ctx.transform(-1, 0, 0, 1, c.width, 0); break;
+            case 3: ctx.transform(-1, 0, 0, -1, c.width, c.height); break;
+            case 4: ctx.transform(1, 0, 0, -1, 0, c.height); break;
+            case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+            case 6: ctx.transform(0, 1, -1, 0, c.width, 0); break;
+            case 7: ctx.transform(0, -1, -1, 0, c.width, c.height); break;
+            case 8: ctx.transform(0, -1, 1, 0, 0, c.height); break;
+        }
+
+        ctx.drawImage(img, 0, 0);
+        return c;
+    }
+
+    function rotateCanvas(sourceCanvas, degrees) {
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+        const rad = (degrees * Math.PI) / 180;
+
+        if (degrees === 90 || degrees === 270) {
+            c.width = sourceCanvas.height;
+            c.height = sourceCanvas.width;
+        } else {
+            c.width = sourceCanvas.width;
+            c.height = sourceCanvas.height;
+        }
+
+        ctx.translate(c.width / 2, c.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(sourceCanvas, -sourceCanvas.width / 2, -sourceCanvas.height / 2);
+        return c;
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  IMAGE PROCESSING
+    // ═════════════════════════════════════════════════════════════════
+    function loadImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Failed to load image'));
+                img.src = reader.result;
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function processPhoto(file) {
+        let img, exifOrientation = 1, exifDate = null;
+        try {
+            // Parse EXIF
+            const buffer = await file.arrayBuffer();
+            try {
+                const exif = await exifr.parse(buffer);
+                if (exif) {
+                    exifOrientation = exif.Orientation || 1;
+                    if (exif.DateTimeOriginal) exifDate = new Date(exif.DateTimeOriginal);
+                }
+            } catch (e) { /* EXIF parsing failed — use defaults */ }
+
+            // Load image
+            img = await loadImageFromFile(file);
+        } catch (e) {
+            return { failed: true, name: file.name };
+        }
+
+        // Apply EXIF orientation
+        const oriented = applyExifOrientation(img, exifOrientation);
+        const baseW = oriented.width;
+        const baseH = oriented.height;
+        const baseAspect = baseH / baseW;
+
+        return {
+            failed: false,
+            name: file.name,
+            file: file,
+            baseImg: img,
+            exifOrientation: exifOrientation,
+            baseW: baseW,
+            baseH: baseH,
+            baseAspect: baseAspect,
+            exifDate: exifDate,
+        };
+    }
+
+    function createThumbnailDataUrl(photo, rotation) {
+        // Apply EXIF orientation first, then user rotation, then resize
+        let canvas = applyExifOrientation(photo.baseImg, photo.exifOrientation);
+        if (rotation && rotation !== 0) {
+            canvas = rotateCanvas(canvas, rotation);
+        }
+        // Resize to thumbnail
+        const thumbW = Math.min(THUMBNAIL_MAX_W, canvas.width);
+        const thumbH = Math.round(thumbW * (canvas.height / canvas.width));
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = thumbW;
+        thumbCanvas.height = thumbH;
+        const ctx = thumbCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0, thumbW, thumbH);
+        return thumbCanvas.toDataURL('image/jpeg', 0.85);
+    }
+
+    function getEffectiveAspectRatio(photo) {
+        // Aspect ratio after EXIF orientation + user rotation
+        let w = photo.baseW, h = photo.baseH;
+        if (photo.rotation === 90 || photo.rotation === 270) {
+            [w, h] = [h, w];
+        }
+        return h / w;
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  ADD PHOTOS
+    // ═════════════════════════════════════════════════════════════════
+    async function addPhotos(files) {
+        const validFiles = [...files].filter(f =>
+            /\.(jpe?g|png)$/i.test(f.name) || /^image\/(jpeg|png)$/.test(f.type)
+        );
+        if (!validFiles.length) return;
+
+        showToast(`Memproses ${validFiles.length} foto...`, 'success', 'loader-circle');
+
+        const results = await Promise.all(validFiles.map(processPhoto));
+        const failed = results.filter(r => r.failed);
+        const ok = results.filter(r => !r.failed);
+
+        if (failed.length) {
+            showToast(
+                `${failed.length} foto gagal dimuat: ${failed.map(f => f.name).join(', ')}`,
+                'warning',
+                'alert-triangle'
+            );
+        }
+
+        for (const p of ok) {
+            const id = crypto.randomUUID();
+            const photo = {
+                id: id,
+                file: p.file,
+                name: p.name,
+                baseImg: p.baseImg,
+                exifOrientation: p.exifOrientation,
+                baseW: p.baseW,
+                baseH: p.baseH,
+                baseAspect: p.baseAspect,
+                rotation: 0,
+                exifDate: p.exifDate,
+                failed: false,
+            };
+            state.photos.push(photo);
+            state.thumbnails[id] = createThumbnailDataUrl(photo, 0);
+        }
+
+        if (ok.length) {
+            // Reset deletedIds for new photos
+            state.manualOrder = null;
+        }
+
+        renderAll();
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  PHOTO ACTIONS
+    // ═════════════════════════════════════════════════════════════════
+    function deletePhoto(id) {
+        state.deletedIds.add(id);
+        renderAll();
+    }
+
+    function rotatePhoto(id, direction) {
+        const photo = state.photos.find(p => p.id === id);
+        if (!photo) return;
+        photo.rotation = ((photo.rotation + direction) % 360 + 360) % 360;
+        state.thumbnails[id] = createThumbnailDataUrl(photo, photo.rotation);
+        renderAll();
+    }
+
+    function restoreAllDeleted() {
+        state.deletedIds.clear();
+        renderAll();
+    }
+
+    function clearAllPhotos() {
+        state.photos = [];
+        state.thumbnails = {};
+        state.deletedIds.clear();
+        state.manualOrder = null;
+        state.captions = {};
+        renderAll();
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  GET ACTIVE PHOTOS (sorted, filtered)
+    // ═════════════════════════════════════════════════════════════════
+    function getActivePhotos() {
+        let active = state.photos.filter(p => !state.deletedIds.has(p.id));
+
+        switch (state.sortMode) {
+            case 'name-asc':
+                active = [...active].sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name-desc':
+                active = [...active].sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            case 'exif':
+                active = [...active].sort((a, b) => {
+                    const da = a.exifDate ? a.exifDate.getTime() : 0;
+                    const db = b.exifDate ? b.exifDate.getTime() : 0;
+                    return da - db;
+                });
+                break;
+            case 'manual':
+                if (state.manualOrder) {
+                    const orderMap = new Map(state.manualOrder.map((id, i) => [id, i]));
+                    active = [...active].sort((a, b) => {
+                        const oa = orderMap.has(a.id) ? orderMap.get(a.id) : Infinity;
+                        const ob = orderMap.has(b.id) ? orderMap.get(b.id) : Infinity;
+                        return oa - ob;
+                    });
+                }
+                break;
+            // 'upload' — keep original order
+        }
+
+        return active;
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  WATERFALL ALGORITHM
+    // ═════════════════════════════════════════════════════════════════
+    function runWaterfall(heightsMm, nCols, a4w, a4h, extraH) {
+        if (!heightsMm.length) return [];
+
+        const imgWidthMm = computeImgWidth(a4w, nCols);
+        const maxY = a4h - BOTTOM_MARGIN_MM;
+        const colHeights = new Array(nCols).fill(TOP_MARGIN_MM);
+        const colX = Array.from({length: nCols}, (_, c) =>
+            PAGE_MARGIN_MM + c * (imgWidthMm + GAP_MM));
+
+        const placements = [];
+        let page = 0;
+
+        for (const hMm of heightsMm) {
+            const slotH = hMm + extraH;
+            let minCol = colHeights.indexOf(Math.min(...colHeights));
+            let x = colX[minCol];
+            let y = colHeights[minCol];
+
+            if (y + slotH > maxY) {
+                page++;
+                for (let i = 0; i < nCols; i++) colHeights[i] = TOP_MARGIN_MM;
+                minCol = 0;
+                x = colX[minCol];
+                y = colHeights[minCol];
+            }
+
+            placements.push({ page, col: minCol, x_mm: x, y_mm: y });
+            colHeights[minCol] += slotH + GAP_MM;
+        }
+
+        return placements;
+    }
+
+    function estimatePages(photos, nCols, a4w, a4h, extraH) {
+        if (!photos.length) return 0;
+        const heights = photos.map(p => getEffectiveAspectRatio(p) * computeImgWidth(a4w, nCols));
+        const placements = runWaterfall(heights, nCols, a4w, a4h, extraH);
+        return placements.length ? placements[placements.length - 1].page + 1 : 0;
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  PDF GENERATION
+    // ═════════════════════════════════════════════════════════════════
+    function fitCaption(pdf, text, maxWidthMm) {
+        if (!text) return '';
+        let t = text;
+        while (t && pdf.getTextWidth(t) > maxWidthMm) t = t.slice(0, -1);
+        if (!t) return '';
+        if (t.length < text.length) {
+            while (t && pdf.getTextWidth(t + '...') > maxWidthMm) t = t.slice(0, -1);
+            t = t ? t + '...' : '';
+        }
+        return t;
+    }
+
+    function createFullResDataUrl(photo, imgWidthMm) {
+        // Apply EXIF orientation + user rotation at full resolution
+        let canvas = applyExifOrientation(photo.baseImg, photo.exifOrientation);
+        if (photo.rotation && photo.rotation !== 0) {
+            canvas = rotateCanvas(canvas, photo.rotation);
+        }
+
+        // Scale to print dimensions at 300 DPI
+        const targetW = mmToPx(imgWidthMm);
+        const targetH = Math.round(targetW * (canvas.height / canvas.width));
+
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = targetW;
+        finalCanvas.height = targetH;
+        const ctx = finalCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0, targetW, targetH);
+
+        return finalCanvas.toDataURL('image/jpeg', state.jpegQuality / 100);
+    }
+
+    async function generatePDF() {
+        const photos = getActivePhotos();
+        if (!photos.length) { showToast('Tidak ada foto untuk diproses.', 'warning', 'alert-triangle'); return; }
+
+        const a4w = state.orientation === 'landscape' ? A4_H_PORTRAIT : A4_W_PORTRAIT;
+        const a4h = state.orientation === 'landscape' ? A4_W_PORTRAIT : A4_H_PORTRAIT;
+        const nCols = state.nCols;
+        const imgWidthMm = computeImgWidth(a4w, nCols);
+        const extraH = state.captionsEnabled ? CAPTION_HEIGHT_MM : 0;
+
+        const heights = photos.map(p => getEffectiveAspectRatio(p) * imgWidthMm);
+        const placements = runWaterfall(heights, nCols, a4w, a4h, extraH);
+        const totalPages = placements.length ? placements[placements.length - 1].page + 1 : 1;
+
+        // Show progress
+        dom.progressOverlay.style.display = 'flex';
+        dom.progressText.textContent = `Menyiapkan ${photos.length} foto...`;
+        dom.progressFill.style.width = '0%';
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const orient = state.orientation === 'landscape' ? 'l' : 'p';
+            const pdf = new jsPDF({ orientation: orient, unit: 'mm', format: 'a4' });
+
+            let currentPage = 0;
+
+            for (let i = 0; i < photos.length; i++) {
+                const placement = placements[i];
+                const photo = photos[i];
+
+                // Add pages as needed
+                while (currentPage < placement.page) {
+                    pdf.addPage();
+                    currentPage++;
+                }
+
+                // Process image at full resolution
+                dom.progressText.textContent = `Memproses foto ${i + 1}/${photos.length}...`;
+                dom.progressFill.style.width = `${Math.round((i / photos.length) * 100)}%`;
+
+                const dataUrl = createFullResDataUrl(photo, imgWidthMm);
+                const hMm = getEffectiveAspectRatio(photo) * imgWidthMm;
+
+                pdf.addImage(dataUrl, 'JPEG', placement.x_mm, placement.y_mm, imgWidthMm, hMm);
+
+                // Border
+                pdf.setDrawColor(0, 0, 0);
+                pdf.setLineWidth(BORDER_MM);
+                pdf.rect(placement.x_mm, placement.y_mm, imgWidthMm, hMm);
+
+                // Caption (mengacu ke app.py: Helvetica bold, cell-centered)
+                if (state.captionsEnabled) {
+                    // Default caption dari nama file tanpa ekstensi (sama seperti default_caption di app.py)
+                    const defaultCap = photo.name.replace(/\.[^.]+$/, '');
+                    const raw = (state.captions[photo.id] || '').trim() || defaultCap;
+                    if (raw) {
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setFontSize(CAPTION_FONT_PT);
+                        pdf.setTextColor(0, 0, 0);
+                        const fitted = fitCaption(pdf, raw, imgWidthMm - CAPTION_X_PADDING_MM);
+                        if (fitted) {
+                            const cellH = CAPTION_HEIGHT_MM - CAPTION_Y_OFFSET_MM;
+                            const capY = placement.y_mm + hMm + CAPTION_Y_OFFSET_MM;
+                            const safeX = Math.max(0, placement.x_mm);
+                            // jsPDF text() menempatkan baseline di y, sedangkan fpdf2 cell()
+                            // menempatkan top-left di y. Tambahkan offset agar teks terpusat di cell.
+                            pdf.text(fitted, safeX + imgWidthMm / 2, capY + cellH * 0.65, {
+                                align: 'center',
+                            });
+                        }
+                    }
+                }
+
+                // Yield to UI thread periodically
+                if (i % 5 === 0) await new Promise(r => setTimeout(r, 0));
+            }
+
+            dom.progressText.textContent = 'Menyimpan PDF...';
+            dom.progressFill.style.width = '95%';
+
+            const safeName = state.pdfName.replace(/[^a-zA-Z0-9 _-]/g, '').trim() || 'output_foto';
+            pdf.save(safeName + '.pdf');
+
+            dom.progressFill.style.width = '100%';
+            await new Promise(r => setTimeout(r, 300));
+            dom.progressOverlay.style.display = 'none';
+            showToast(`PDF berhasil dibuat! ${photos.length} foto · ${totalPages} halaman`, 'success', 'party-popper');
+
+        } catch (err) {
+            dom.progressOverlay.style.display = 'none';
+            console.error('PDF generation failed:', err);
+            showToast('Gagal membuat PDF: ' + err.message, 'error', 'x-circle');
+        }
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  RENDER
+    // ═════════════════════════════════════════════════════════════════
+    function renderAll() {
+        const photos = getActivePhotos();
+        const totalAll = state.photos.length;
+        const deletedCount = state.deletedIds.size;
+        const a4w = state.orientation === 'landscape' ? A4_H_PORTRAIT : A4_W_PORTRAIT;
+        const a4h = state.orientation === 'landscape' ? A4_W_PORTRAIT : A4_H_PORTRAIT;
+        const imgWidthMm = computeImgWidth(a4w, state.nCols);
+        const extraH = state.captionsEnabled ? CAPTION_HEIGHT_MM : 0;
+
+        const hasPhotos = photos.length > 0;
+
+        // Nav count
+        dom.navCount.textContent = totalAll ? `${totalAll} foto` : '0 foto';
+        if (deletedCount) dom.navCount.textContent += ` (${deletedCount} dihapus)`;
+
+        // Generate buttons
+        dom.btnGenerateNav.disabled = !hasPhotos;
+        dom.btnGenerateSidebar.disabled = !hasPhotos;
+
+        // Empty state
+        dom.emptyState.style.display = hasPhotos ? 'none' : 'block';
+        dom.toolbar.style.display = hasPhotos ? 'flex' : 'none';
+        dom.statsBar.style.display = hasPhotos ? 'flex' : 'none';
+        dom.btnClearAll.style.display = hasPhotos ? '' : 'none';
+
+        // Toolbar values
+        dom.sortSelect.value = state.sortMode;
+        dom.pdfName.value = state.pdfName;
+
+        // Restore bar
+        dom.restoreBar.style.display = deletedCount ? 'flex' : 'none';
+
+        // Stats
+        dom.statCount.textContent = photos.length;
+        const pages = estimatePages(photos, state.nCols, a4w, a4h, extraH);
+        dom.statPages.textContent = pages;
+        dom.statDims.innerHTML = `<i data-lucide="ruler" class="lucide-sm"></i> ${state.orientation === 'landscape' ? 'Landscape' : 'Portrait'} · ${state.nCols} kolom · JPEG ${state.jpegQuality}`;
+        lucide.createIcons({ target: dom.statDims });
+
+        // Render photo grid
+        if (state.sortMode === 'manual') {
+            renderSortableList(photos, imgWidthMm);
+        } else {
+            renderWaterfallGrid(photos, imgWidthMm, a4w, a4h, extraH);
+        }
+
+        // Update Sortable if manual mode
+        if (state.sortMode === 'manual') {
+            initSortable();
+        }
+
+        // Render all Lucide icons (after DOM updated)
+        lucide.createIcons({ target: dom.photoGrid });
+    }
+
+    function renderWaterfallGrid(photos, imgWidthMm, a4w, a4h, extraH) {
+        const nCols = state.nCols;
+        if (!photos.length) { dom.photoGrid.innerHTML = ''; return; }
+
+        const heights = photos.map(p => getEffectiveAspectRatio(p) * imgWidthMm);
+        const placements = runWaterfall(heights, nCols, a4w, a4h, extraH);
+
+        // Group by column
+        const cols = Array.from({length: nCols}, () => []);
+        for (let i = 0; i < photos.length; i++) {
+            const col = placements[i].col;
+            cols[col].push({ photo: photos[i], index: i });
+        }
+
+        let html = '<div class="waterfall-grid">';
+        for (let c = 0; c < nCols; c++) {
+            html += '<div class="waterfall-col">';
+            for (const {photo, index} of cols[c]) {
+                html += renderPhotoCard(photo, index);
+            }
+            html += '</div>';
+        }
+        html += '</div>';
+        dom.photoGrid.innerHTML = html;
+
+        // Bind event listeners
+        bindCardEvents();
+    }
+
+    function renderSortableList(photos, imgWidthMm) {
+        let html = '<div class="sortable-list" id="sortable-list">';
+        for (let i = 0; i < photos.length; i++) {
+            const photo = photos[i];
+            const thumbUrl = state.thumbnails[photo.id] || '';
+            const rotBadge = photo.rotation ? `<span class="card-rotation-badge"><i data-lucide="rotate-cw" class="lucide-sm"></i> ${photo.rotation}°</span>` : '';
+            const captionVal = state.captions[photo.id] || '';
+            // Caption input menyatu di dalam sortable item — tidak terpisah di bawah
+            const captionRow = state.captionsEnabled
+                ? `<div style="padding:4px 8px 6px 40px;">
+                     <input class="card-caption-input" data-caption-id="${photo.id}"
+                       value="${escapeHtml(captionVal)}"
+                       placeholder="Keterangan untuk ${photo.name}..."
+                       style="width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 8px;font-family:inherit;font-size:12px;">
+                   </div>`
+                : '';
+            html += `
+                <div class="sortable-item" data-id="${photo.id}">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="sortable-drag-handle"><i data-lucide="grip-vertical"></i></span>
+                        <img class="sortable-thumb" src="${thumbUrl}" alt="${photo.name}">
+                        <span class="sortable-name">${i + 1}. ${photo.name}</span>
+                        ${rotBadge}
+                        <button class="btn-icon" data-action="rotate-cw" data-id="${photo.id}" title="Putar 90° CW"><i data-lucide="rotate-cw"></i></button>
+                        <button class="btn-icon" data-action="rotate-ccw" data-id="${photo.id}" title="Putar 90° CCW"><i data-lucide="rotate-ccw"></i></button>
+                        <button class="btn-icon danger" data-action="delete" data-id="${photo.id}" title="Hapus"><i data-lucide="trash-2"></i></button>
+                    </div>
+                    ${captionRow}
+                </div>`;
+        }
+        html += '</div>';
+        dom.photoGrid.innerHTML = html;
+
+        bindCardEvents();
+    }
+
+    function renderPhotoCard(photo, index) {
+        const thumbUrl = state.thumbnails[photo.id] || '';
+        const rotBadge = photo.rotation ? `<span class="card-rotation-badge"><i data-lucide="rotate-cw" class="lucide-sm"></i> ${photo.rotation}°</span>` : '';
+        const captionVal = state.captions[photo.id] || '';
+        const captionHtml = state.captionsEnabled
+            ? `<input class="card-caption-input" data-caption-id="${photo.id}" value="${escapeHtml(captionVal)}" placeholder="Keterangan...">`
+            : '';
+
+        return `
+            <div class="photo-card" data-id="${photo.id}">
+                <span class="card-index">${index + 1}</span>
+                <img class="card-img" src="${thumbUrl}" alt="${photo.name}" loading="lazy">
+                <div class="card-actions">
+                    ${rotBadge}
+                    <button class="btn-icon" data-action="rotate-cw" data-id="${photo.id}" title="Putar 90° searah jarum jam"><i data-lucide="rotate-cw"></i></button>
+                    <button class="btn-icon" data-action="rotate-ccw" data-id="${photo.id}" title="Putar 90° berlawanan jarum jam"><i data-lucide="rotate-ccw"></i></button>
+                    <button class="btn-icon danger" data-action="delete" data-id="${photo.id}" title="Hapus foto ini"><i data-lucide="trash-2"></i></button>
+                </div>
+                ${captionHtml}
+            </div>`;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function bindCardEvents() {
+        // Button clicks (delegated)
+        dom.photoGrid.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = btn.dataset.action;
+                const id = btn.dataset.id;
+                if (action === 'delete') deletePhoto(id);
+                else if (action === 'rotate-cw') rotatePhoto(id, 90);
+                else if (action === 'rotate-ccw') rotatePhoto(id, -90);
+            });
+        });
+
+        // Caption inputs
+        dom.photoGrid.querySelectorAll('[data-caption-id]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const id = input.dataset.captionId;
+                state.captions[id] = input.value;
+            });
+        });
+    }
+
+    let sortableInstance = null;
+    function initSortable() {
+        const list = $('#sortable-list');
+        if (!list) return;
+        if (sortableInstance) sortableInstance.destroy();
+        sortableInstance = new Sortable(list, {
+            animation: 200,
+            handle: '.sortable-drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: function() {
+                const items = list.querySelectorAll('.sortable-item');
+                const newOrder = [];
+                items.forEach(el => newOrder.push(el.dataset.id));
+                // Reorder state.photos to match
+                const photoMap = new Map(state.photos.map(p => [p.id, p]));
+                const reordered = [];
+                const seen = new Set();
+                for (const id of newOrder) {
+                    if (photoMap.has(id) && !seen.has(id)) {
+                        reordered.push(photoMap.get(id));
+                        seen.add(id);
+                    }
+                }
+                // Add any missing
+                for (const p of state.photos) {
+                    if (!seen.has(p.id)) { reordered.push(p); seen.add(p.id); }
+                }
+                state.photos = reordered;
+                state.manualOrder = newOrder;
+                renderAll();
+            }
+        });
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    //  EVENT HANDLERS
+    // ═════════════════════════════════════════════════════════════════
+
+    // Upload zone click
+    dom.uploadZone.addEventListener('click', () => dom.fileInput.click());
+    dom.fileInput.addEventListener('change', () => {
+        if (dom.fileInput.files.length) {
+            addPhotos(dom.fileInput.files);
+            dom.fileInput.value = '';
+        }
+    });
+
+    // Drag & drop
+    dom.uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dom.uploadZone.classList.add('drag-over');
+    });
+    dom.uploadZone.addEventListener('dragleave', () => {
+        dom.uploadZone.classList.remove('drag-over');
+    });
+    dom.uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dom.uploadZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) addPhotos(e.dataTransfer.files);
+    });
+
+    // Global paste (Ctrl+V)
+    document.addEventListener('paste', async (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        const imageFiles = [];
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                const blob = item.getAsFile();
+                if (blob) {
+                    const ext = item.type === 'image/png' ? 'png' : 'jpg';
+                    const f = new File([blob], `clipboard_${Date.now()}.${ext}`, { type: item.type });
+                    imageFiles.push(f);
+                }
+            }
+        }
+        if (imageFiles.length) {
+            e.preventDefault();
+            await addPhotos(imageFiles);
+        }
+    });
+
+    // Clipboard button
+    dom.btnPaste.addEventListener('click', async (e) => {
+        e.stopPropagation();  // cegah bubbling ke upload zone → tidak buka file manager
+        try {
+            const items = await navigator.clipboard.read();
+            const imageFiles = [];
+            for (const item of items) {
+                for (const type of item.types) {
+                    if (type.startsWith('image/')) {
+                        const blob = await item.getType(type);
+                        const ext = type === 'image/png' ? 'png' : 'jpg';
+                        const f = new File([blob], `clipboard_${Date.now()}.${ext}`, { type });
+                        imageFiles.push(f);
+                    }
+                }
+            }
+            if (imageFiles.length) {
+                await addPhotos(imageFiles);
+            } else {
+                showToast('Tidak ada gambar di clipboard.', 'warning', 'alert-triangle');
+            }
+        } catch (err) {
+            showToast('Clipboard tidak tersedia. Gunakan Ctrl+V di halaman ini.', 'warning', 'alert-triangle');
+        }
+    });
+
+    // Sort select
+    dom.sortSelect.addEventListener('change', () => {
+        state.sortMode = dom.sortSelect.value;
+        if (state.sortMode === 'manual' && !state.manualOrder) {
+            state.manualOrder = getActivePhotos().map(p => p.id);
+        }
+        renderAll();
+    });
+
+    // PDF name
+    dom.pdfName.addEventListener('input', () => {
+        state.pdfName = dom.pdfName.value;
+    });
+
+    // Clear all
+    dom.btnClearAll.addEventListener('click', () => {
+        if (confirm('Hapus semua foto? Tindakan ini tidak bisa dibatalkan.')) {
+            clearAllPhotos();
+        }
+    });
+
+    // Restore all
+    dom.btnRestoreAll.addEventListener('click', restoreAllDeleted);
+
+    // Generate buttons
+    dom.btnGenerateNav.addEventListener('click', generatePDF);
+    dom.btnGenerateSidebar.addEventListener('click', generatePDF);
+
+    // Orientation radio
+    dom.orientationGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('.radio-btn');
+        if (!btn) return;
+        const val = btn.dataset.value;
+        if (val === state.orientation) return;
+        state.orientation = val;
+        state.nCols = val === 'landscape' ? 4 : 3;
+        // Update UI
+        dom.orientationGroup.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        dom.colsSlider.value = state.nCols;
+        dom.colsValue.textContent = state.nCols;
+        renderAll();
+    });
+
+    // Columns slider
+    dom.colsSlider.addEventListener('input', () => {
+        state.nCols = parseInt(dom.colsSlider.value);
+        dom.colsValue.textContent = state.nCols;
+        renderAll();
+    });
+
+    // Quality slider
+    dom.qualitySlider.addEventListener('input', () => {
+        state.jpegQuality = parseInt(dom.qualitySlider.value);
+        dom.qualityValue.textContent = state.jpegQuality;
+    });
+
+    // Captions toggle
+    dom.captionsToggle.addEventListener('change', () => {
+        state.captionsEnabled = dom.captionsToggle.checked;
+        renderAll();
+    });
+
+    // ═════════════════════════════════════════════════════════════════
+    //  INIT
+    // ═════════════════════════════════════════════════════════════════
+    renderAll();
+    lucide.createIcons();
+})();
+</script>
+</body>
+</html>

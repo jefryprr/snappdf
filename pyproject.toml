@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "snappdf"
+version = "0.1.0"
+description = "A lightweight, frontend-only photo-to-PDF converter with waterfall layout, drag-and-drop sorting, and EXIF-aware rotation."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Jefry Pratama" }]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/snappdf"]
