@@ -8,8 +8,21 @@ A zero-dependency, feature-rich HTML+JS web app that converts photos into a prin
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![HTML5](https://img.shields.io/badge/HTML5-zero--dependency-orange.svg)](index.html)
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blueviolet.svg)](https://jefryprr.github.io/snappdf/)
 
 </div>
+
+> **🌐 Live Demo: [https://jefryprr.github.io/snappdf/](https://jefryprr.github.io/snappdf/)**
+>
+> Langsung bisa dipakai — tanpa install, tanpa login. Buka di HP, tablet, atau desktop.
+
+---
+
+## 🌐 Live Demo
+
+Buka langsung di browser: **[https://jefryprr.github.io/snappdf/](https://jefryprr.github.io/snappdf/)**
+
+Deployed via **GitHub Pages** dari branch `main`. Update otomatis setiap push.
 
 ---
 
@@ -97,6 +110,24 @@ snappdf/
 | UI | Vanilla HTML + CSS + JavaScript |
 | Build | None required |
 | Backend | None required |
+
+## 🌐 Deployment — GitHub Pages
+
+App ini bisa diakses publik via **GitHub Pages** tanpa biaya, tanpa backend.
+
+### Cara Mengaktifkan:
+
+1. Buka repo → **Settings** → **Pages**
+2. **Source**: Deploy from a branch
+3. **Branch**: `main`, folder `/ (root)`
+4. Klik **Save**
+5. Tunggu ~1 menit → live di `https://jefryprr.github.io/snappdf/`
+
+### Update Otomatis:
+
+Setiap push ke branch `main`, GitHub Pages akan otomatis rebuild. Tidak perlu deploy manual.
+
+---
 
 ## 📝 License
 
