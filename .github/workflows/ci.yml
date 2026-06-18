@@ -6,35 +6,61 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run tests
-        run: pytest tests/ -v
-
-  # Validate HTML is well-formed (basic check)
-  html-check:
+  validate:
+    name: Validate HTML
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Check index.html exists and is non-empty
         run: |
           test -s index.html
-          echo "index.html exists and is non-empty ($(wc -c < index.html) bytes)"
+          echo "✅ index.html exists ($(wc -c < index.html) bytes)"
+
+      - name: Validate HTML structure
+        run: |
+          # Check for basic HTML structure
+          grep -q '<!DOCTYPE html>' index.html
+          grep -q '<html' index.html
+          grep -q '</html>' index.html
+          grep -q '<head>' index.html
+          grep -q '</head>' index.html
+          grep -q '<body>' index.html
+          grep -q '</body>' index.html
+          echo "✅ HTML structure valid"
+
+      - name: Check for duplicate tags
+        run: |
+          # Check for duplicate closing style tags
+          STYLE_COUNT=$(grep -c '</style>' index.html || true)
+          if [ "$STYLE_COUNT" -gt 1 ]; then
+            echo "⚠️ Found $STYLE_COUNT </style> tags"
+            exit 1
+          fi
+          echo "✅ No duplicate tags found"
+
+      - name: Check for broken links in README
+        run: |
+          # Verify referenced files exist
+          for file in LICENSE CHANGELOG.md; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing referenced file: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All referenced files exist"
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Markdown
+        uses: avto-dev/markdown-lint@v1
+        with:
+          args: README.md CHANGELOG.md

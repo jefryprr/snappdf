@@ -5,6 +5,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.2.0] — 2026-06-20
+
+### Changed
+- **README overhaul** — professional English documentation with feature table, architecture section, and contributing guidelines
+- **CI pipeline** — replaced minimal check with HTML structure validation, duplicate tag detection, and Markdown linting
+
+### Fixed
+- Duplicate `</style>` tag in `index.html`
+
+### Removed
+- Misleading Python scaffold (`src/`, `tests/`, `pyproject.toml`) — the app is 100% frontend, these files gave false impression of a Python package
+- Redundant `docs/index.md` — was a minimal copy of README
+
+### Added
+- GitHub issue templates (bug report, feature request)
+- Pull request template
+- Contributing section in README
+
+---
+
 ## [0.1.0] — 2026-06-20
 
 ### Added
